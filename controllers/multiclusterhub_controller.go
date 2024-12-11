@@ -768,6 +768,9 @@ func (r *MultiClusterHubReconciler) applyTemplate(ctx context.Context, m *operat
 		// Apply the object data.
 		force := true
 		err := r.Client.Patch(ctx, template, client.Apply, &client.PatchOptions{Force: &force, FieldManager: "multiclusterhub-operator"})
+		if err == nil {
+			r.Log.Info("test")
+		}
 		if err != nil {
 			log.Info(err.Error())
 			wrappedError := pkgerrors.Wrapf(err, "error applying object Name: %s Kind: %s", template.GetName(), template.GetKind())
@@ -878,6 +881,7 @@ func (r *MultiClusterHubReconciler) ensureNamespaceAndPullSecret(m *operatorv1.M
 
 func (r *MultiClusterHubReconciler) ensureComponent(ctx context.Context, m *operatorv1.MultiClusterHub, component string,
 	cachespec CacheSpec, isSTSEnabled bool) (ctrl.Result, error) {
+	log.V(2).Info("printing test ", component)
 	/*
 	   If the component is detected to be MCH, we can simply return successfully. MCH is only listed in the components
 	   list for cleanup purposes.
