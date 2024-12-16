@@ -764,19 +764,31 @@ func (r *MultiClusterHubReconciler) applyTemplate(ctx context.Context, m *operat
 				}
 			}
 		}
-
-		// Apply the object data.
-		force := true
-		err := r.Client.Patch(ctx, template, client.Apply, &client.PatchOptions{Force: &force, FieldManager: "multiclusterhub-operator"})
-		if err == nil {
-			r.Log.Info("test")
-			log.Info("printing test")
-		}
+		err := r.Client.Get(ctx, types.NamespacedName{Name: template.GetName(), Namespace: template.GetNamespace()}, template)
+		//r.Log.Info("resource found ", "name", template.GetName())
+		template.SetManagedFields(nil)
+		// resource not found
 		if err != nil {
-			log.Info(err.Error())
-			wrappedError := pkgerrors.Wrapf(err, "error applying object Name: %s Kind: %s", template.GetName(), template.GetKind())
-			SetHubCondition(&m.Status, *NewHubCondition(operatorv1.ComponentFailure+": "+operatorv1.HubConditionType(template.GetName())+"(Kind:)"+operatorv1.HubConditionType(template.GetKind()), metav1.ConditionTrue, FailedApplyingComponent, wrappedError.Error()))
-			return ctrl.Result{}, wrappedError
+			err := r.Client.Create(ctx, template, &client.CreateOptions{})
+			if err != nil {
+				log.Info(err.Error())
+				wrappedError := pkgerrors.Wrapf(err, "error applying object Name: %s Kind: %s", template.GetName(), template.GetKind())
+				SetHubCondition(&m.Status, *NewHubCondition(operatorv1.ComponentFailure+": "+operatorv1.HubConditionType(template.GetName())+"(Kind:)"+operatorv1.HubConditionType(template.GetKind()), metav1.ConditionTrue, FailedApplyingComponent, wrappedError.Error()))
+				return ctrl.Result{}, wrappedError
+			} else {
+				r.Log.Info("Creating resource", "Name", template.GetName())
+				r.Log.Info("Creating resource", "Kind", template.GetKind())
+			}
+		} else {
+			// resource found
+			force := true
+			err := r.Client.Patch(ctx, template, client.Apply, &client.PatchOptions{Force: &force, FieldManager: "multiclusterhub-operator"})
+			if err != nil {
+				log.Info(err.Error())
+				wrappedError := pkgerrors.Wrapf(err, "error applying object Name: %s Kind: %s", template.GetName(), template.GetKind())
+				SetHubCondition(&m.Status, *NewHubCondition(operatorv1.ComponentFailure+": "+operatorv1.HubConditionType(template.GetName())+"(Kind:)"+operatorv1.HubConditionType(template.GetKind()), metav1.ConditionTrue, FailedApplyingComponent, wrappedError.Error()))
+				return ctrl.Result{}, wrappedError
+			}
 		}
 	}
 	return ctrl.Result{}, nil
@@ -1233,6 +1245,9 @@ func (r *MultiClusterHubReconciler) deleteTemplate(ctx context.Context, m *opera
 	if err != nil {
 		log.Error(err, "Failed to delete template")
 		return ctrl.Result{}, err
+	} else {
+		r.Log.Info("Deleting resource", "Name", template.GetName())
+		r.Log.Info("Deleting resource", "Kind", template.GetKind())
 	}
 	return ctrl.Result{}, nil
 }
