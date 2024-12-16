@@ -1239,13 +1239,12 @@ func (r *MultiClusterHubReconciler) deleteTemplate(ctx context.Context, m *opera
 		return ctrl.Result{}, err
 	}
 
-	log.Info("Finalizing template", "Kind", template.GetKind(), "Name", template.GetName())
 	err = r.Client.Delete(ctx, template)
 	if err != nil {
 		log.Error(err, "Failed to delete template")
 		return ctrl.Result{}, err
 	} else {
-		r.Log.Info("Deleting resource", "Name", template.GetName(), "Kind", template.GetKind())
+		r.Log.Info("Finalizing template... Deleting resource", "Name", template.GetName(), "Kind", template.GetKind())
 	}
 	return ctrl.Result{}, nil
 }
