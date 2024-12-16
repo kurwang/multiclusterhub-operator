@@ -776,8 +776,7 @@ func (r *MultiClusterHubReconciler) applyTemplate(ctx context.Context, m *operat
 				SetHubCondition(&m.Status, *NewHubCondition(operatorv1.ComponentFailure+": "+operatorv1.HubConditionType(template.GetName())+"(Kind:)"+operatorv1.HubConditionType(template.GetKind()), metav1.ConditionTrue, FailedApplyingComponent, wrappedError.Error()))
 				return ctrl.Result{}, wrappedError
 			} else {
-				r.Log.Info("Creating resource", "Name", template.GetName())
-				r.Log.Info("Creating resource", "Kind", template.GetKind())
+				r.Log.Info("Creating resource", "Name", template.GetName(), "Kind", template.GetKind())
 			}
 		} else {
 			// resource found
@@ -1246,8 +1245,7 @@ func (r *MultiClusterHubReconciler) deleteTemplate(ctx context.Context, m *opera
 		log.Error(err, "Failed to delete template")
 		return ctrl.Result{}, err
 	} else {
-		r.Log.Info("Deleting resource", "Name", template.GetName())
-		r.Log.Info("Deleting resource", "Kind", template.GetKind())
+		r.Log.Info("Deleting resource", "Name", template.GetName(), "Kind", template.GetKind())
 	}
 	return ctrl.Result{}, nil
 }
